@@ -13,14 +13,15 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { Auth } from '../auth/decorators/auth.decorator';
+import { UserRole } from './entities/user.entity';
 
-@ApiTags('Perfil')
+@ApiTags('Usuarios')
 @Auth()
-@Controller('users/me')
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get()
+  @Get('me')
   @ApiOperation({
     summary: 'Obtener el perfil del usuario autenticado',
   })
@@ -30,7 +31,7 @@ export class UsersController {
     return this.usersService.toResponse(user);
   }
 
-  @Patch('password')
+  @Patch('me/password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Cambiar la contraseña del usuario autenticado',
@@ -48,5 +49,15 @@ export class UsersController {
       dto.newPassword,
     );
     return { message: 'Contraseña actualizada correctamente' };
+  }
+
+  @Get()
+  @Auth(UserRole.ADMIN)
+  @ApiOperation({
+    summary: 'Listar todos los usuarios (requiere rol admin)',
+  })
+  @ApiOkResponse({ type: [UserResponseDto] })
+  findAll() {
+    return this.usersService.findAll();
   }
 }
