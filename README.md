@@ -131,8 +131,14 @@ Authorization: Bearer <accessToken>
 
 **Cuenta admin sembrada por la migración** (solo para desarrollo/pruebas — cambia la contraseña si vas a exponer la API fuera de un entorno controlado):
 
+
+- Admin:
 - Email: `admin@examen.com`
 - Password: `Admin123!`
+
+-User:
+-Email": `milton@example.com`
+-Password": `miPassword123`
 
 Cualquier otra cuenta registrada desde `/auth/register` recibe el rol `user` por defecto.
 

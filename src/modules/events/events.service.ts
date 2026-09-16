@@ -27,7 +27,8 @@ export class EventsService {
       .createQueryBuilder('event')
       .leftJoinAndSelect('event.category', 'category')
       .leftJoinAndSelect('event.images', 'images')
-      .orderBy('event.date', 'ASC');
+      .orderBy('event.date', 'ASC')
+      .addOrderBy('images.order', 'ASC');
 
     if (query.search) {
       qb.andWhere(
@@ -67,12 +68,21 @@ export class EventsService {
       price: dto.price,
       capacity: dto.capacity,
       categoryId: dto.categoryId,
-      images: (dto.images ?? []).map((url, index) =>
-        this.eventImagesRepository.create({ url, order: index }),
-      ),
     });
 
     const saved = await this.eventsRepository.save(event);
+
+    if (dto.images && dto.images.length > 0) {
+      const eventImages = dto.images.map((url, index) =>
+        this.eventImagesRepository.create({
+          url,
+          order: index,
+          eventId: saved.id,
+        }),
+      );
+      await this.eventImagesRepository.save(eventImages);
+    }
+
     return this.findOne(saved.id);
   }
 
@@ -93,14 +103,22 @@ export class EventsService {
       event.date = new Date(date);
     }
 
+    await this.eventsRepository.save(event);
+
     if (images) {
       await this.eventImagesRepository.delete({ eventId: id });
-      event.images = images.map((url, index) =>
-        this.eventImagesRepository.create({ url, order: index }),
-      );
+      if (images.length > 0) {
+        const eventImages = images.map((url, index) =>
+          this.eventImagesRepository.create({
+            url,
+            order: index,
+            eventId: id,
+          }),
+        );
+        await this.eventImagesRepository.save(eventImages);
+      }
     }
 
-    await this.eventsRepository.save(event);
     return this.findOne(id);
   }
 
